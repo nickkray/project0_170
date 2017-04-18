@@ -26,13 +26,13 @@ int pressedOnce = 0;
 
 void  INThandler(int sig)
 {
-     char  c;
-
      signal(sig, SIGTSTP);
      if(pressedOnce)
-       exit(0);
+         exit(0);
      
      pressedOnce = 1;
+    
+    signal(SIGTSTP, INThandler);
      
      //c = getchar();
      //if (c == 'y' || c == 'Y')
