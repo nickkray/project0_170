@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <stdlib.h>
+#include  <signal.h>
 
 #define MAX_TOKEN_LENGTH 50
 #define MAX_TOKEN_COUNT 100
@@ -21,6 +22,27 @@
  *   shell: exit
  **/
 
+int pressedOnce = 0;
+
+void  INThandler(int sig)
+{
+     char  c;
+
+     signal(sig, SIGTSTP);
+     if(pressedOnce)
+       exit(0);
+     
+     pressedOnce = 1;
+     
+     //c = getchar();
+     //if (c == 'y' || c == 'Y')
+     //     exit(0);
+     //else
+     //     signal(SIGINT, INThandler);
+     //getchar(); // Get new line character
+}
+
+
 void runcommand(char* command, char** args) {
     pid_t pid = fork();
     if(pid) { // parent
@@ -31,16 +53,20 @@ void runcommand(char* command, char** args) {
 }
 
 int main(){
-    char line[MAX_LINE_LENGTH];
-    //printf("shell: ");
-    while(fgets(line, MAX_LINE_LENGTH, stdin)) {
-        // Build the command and arguments, using execv conventions.
-        line[strlen(line)-1] = '\0'; // get rid of the new line
-        char* command = NULL;
-        char* arguments[MAX_TOKEN_COUNT];
+
+  signal(SIGTSTP, INThandler);
+  
+  char line[MAX_LINE_LENGTH];
+  //printf("shell: ");
+  while(fgets(line, MAX_LINE_LENGTH, stdin)) {
+    // Build the command and arguments, using execv conventions.
+    line[strlen(line)-1] = '\0'; // get rid of the new line
+    char* command = NULL;
+    char* arguments[MAX_TOKEN_COUNT];
         int argument_count = 0;
-        
+
         char* token = strtok(line, " ");
+	
         while(token) {
             if(!command) command = token;
             arguments[argument_count] = token;
