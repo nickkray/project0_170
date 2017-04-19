@@ -30,7 +30,6 @@ struct command{
   int argC;
 };
 
-struct command commands[100];
 
 int numCommands = 0;
 
@@ -55,6 +54,8 @@ void runcommand(char* command, char** args) {
 }
 
 int main(){
+    
+    struct command commands[100];
 
   signal(SIGTSTP, INThandler);
   
@@ -77,9 +78,9 @@ int main(){
       
       if(strcmp(token, "|") == 0){
 	//here we'll save this shit
-	commands[numCommands].command = token;
+	commands[numCommands].command = command;
 	for(int i=0;i<argument_count;i++)
-	  commands[numCommands].args[numCommands][i] = arguments[i];
+	  commands[numCommands].args[i] = arguments[i];
 	commands[numCommands].argC = argument_count;
 	numCommands++;
 	
@@ -90,11 +91,25 @@ int main(){
       }
       
       
-      if(!command) command = token;
-      arguments[argument_count] = token;
-      argument_count++;
+        if(!command){
+            command = token;
+        }else{
+          arguments[argument_count] = token;
+          argument_count++;
+        }
       token = strtok(NULL, " ");
     }
+      
+      
+      commands[numCommands].command = command;
+      for(int i=0;i<argument_count;i++)
+          commands[numCommands].args[i] = arguments[i];
+      commands[numCommands].argC = argument_count;
+      numCommands++;
+      
+      
+      
+      
     arguments[argument_count] = NULL;
     if(argument_count>0){
       if (strcmp(arguments[0], "exit") == 0)
@@ -104,7 +119,8 @@ int main(){
     //printf("shell: ");
 
     for(int i=0;i<numCommands;i++){
-      runcommand(commands[i].command, commands[i].args);
+        printf(commands[i].command);
+      //runcommand(commands[i].command, commands[i].args);
     }
 
     
