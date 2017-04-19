@@ -49,12 +49,49 @@ void  INThandler(int sig){
 }
 
 
-void runcommand(char* command, char** args) {
+/*
+
+ if(commands[i].fileOp == 2){
+ int fd = open(commands[i].file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+ dup2(fd, fileno(stdout));
+ runcommand(commands[i].command, &commands[i].args);
+ close(fd);
+
+*/
+
+void runcommand(char* command, char** args, int fileOp, char* file, int numCommands, int i) {
+    
     pid_t pid = fork();
     if(pid) { // parent
+        int fd[2], in = 0;
+        for(int i=0;i<numCommands;i++){
+            
+            pipe(fd);
+            
+            dup2 (in, STDIN_FILENO);
+            if(i < numCommands-1)
+                dup2 (fd[1], STDOUT_FILENO);
+            
+            if(i == numCommands-1)
+                dup2(1, STDOUT_FILENO);
+            
+            close(fd[1]);
+            in = fd[0];
+        }
+        
+        
         waitpid(pid, NULL, 0);
     } else { // child
+        if(fileOp == 2){     //we are writing >
+            int fd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+            dup2(fd, fileno(stdout));
+        }
+        if(fileOp == 1){           //we are reading <
+            int fd = open(file, O_RDONLY);
+            dup2(fd, fileno(stdin));
+        }
         execvp(command, args);
+        
     }
 }
 
@@ -142,18 +179,17 @@ int main(){
     }
     //printf("shell: ");
 
+      
     for(int i=0;i<numCommands;i++){
     //printf(commands[i].command);
-        if(commands[i].fileOp == 2){
-            int fd = open(commands[i].file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
-            dup2(fd, 1);
-            runcommand(commands[i].command, &commands[i].args);
-            close(fd);
-        if(commands[i].fileOp == 1){
-            
-        }else{
-            runcommand(commands[i].command, &commands[i].args);
-        }
+        int fileOp = 0;
+        char* file;
+            if(commands[i].fileOp!=0){
+                file = commands[i].file;
+                fileOp = commands[i].fileOp;
+            }
+        
+        runcommand(commands[i].command, &commands[i].args, fileOp, file, numCommands, i);
       
     }
 
