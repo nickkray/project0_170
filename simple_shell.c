@@ -72,11 +72,12 @@ void runcommand(char* command, char** args, int fileOp, char* file, int i, int c
         if(fileOp == 2){     //we are writing >
             int fd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
             dup2(fd,fileno(stdout));
-        }
+        }else
         if(fileOp == 1){           //we are reading <
             int fd = open(file, O_RDONLY);
             dup2(fd, fileno(stdin));
-        }
+        }else{
+        
         
         dup2 (*in, fileno(stdin));
         if(i < commandNum-1) //commands 0...n-1
@@ -84,11 +85,15 @@ void runcommand(char* command, char** args, int fileOp, char* file, int i, int c
         
         if(i == commandNum-1) //command n
             dup2(1, fileno(stdout));
+            
+        }
         
         execvp(command, args);
         
     }
 }
+
+static const struct command emptyStruct;
 
 int main(){
     
@@ -99,6 +104,12 @@ int main(){
   char line[MAX_LINE_LENGTH];
   //printf("shell: ");
   while(fgets(line, MAX_LINE_LENGTH, stdin)) {
+    
+    for(int i=0;i<100;i++)
+        commands[i] = emptyStruct;
+    
+    int argument_count = 0;
+    
     pressedOnce = 0;
     // Build the command and arguments, using execv conventions.
     line[strlen(line)-1] = '\0'; // get rid of the new line
@@ -107,7 +118,7 @@ int main(){
 
     char* meta;
     
-    int argument_count = 0;
+    
     
     char* token = strtok(line, " ");
     
