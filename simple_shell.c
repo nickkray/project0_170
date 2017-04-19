@@ -59,20 +59,32 @@ void  INThandler(int sig){
 
 */
 
-void runcommand(char* command, char** args, int fileOp, char* file) {
+void runcommand(char* command, char** args, int fileOp, char* file, int i, int commandNum, int *fd, int *in) {
     
     pid_t pid = fork();
     if(pid) { // parent
+        
+        close(fd[1]);
+        *in = fd[0];
+        
         waitpid(pid, NULL, 0);
     } else { // child
         if(fileOp == 2){     //we are writing >
             int fd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
-            dup2(fd, fileno(stdout));
+            dup2(fd,fileno(stdout));
         }
         if(fileOp == 1){           //we are reading <
             int fd = open(file, O_RDONLY);
             dup2(fd, fileno(stdin));
         }
+        
+        dup2 (*in, fileno(stdin));
+        if(i < commandNum-1) //commands 0...n-1
+            dup2 (fd[1], fileno(stdout));
+        
+        if(i == commandNum-1) //command n
+            dup2(1, fileno(stdout));
+        
         execvp(command, args);
         
     }
@@ -164,10 +176,14 @@ int main(){
 
       
       
-      int fd[2], in = 0;
+    int fd[2], in = 0;
+    
       
       
     for(int i=0;i<numCommands;i++){
+        
+    pipe(fd);
+        
     //printf(commands[i].command);
         int fileOp = 0;
         char* file;
@@ -176,7 +192,7 @@ int main(){
                 fileOp = commands[i].fileOp;
             }
         
-        runcommand(commands[i].command, &commands[i].args, fileOp, file);
+        runcommand(commands[i].command, &commands[i].args, fileOp, file, i, numCommands, fd, &in);
         
       
     }
