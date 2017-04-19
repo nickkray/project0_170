@@ -59,27 +59,10 @@ void  INThandler(int sig){
 
 */
 
-void runcommand(char* command, char** args, int fileOp, char* file, int numCommands, int i) {
+void runcommand(char* command, char** args, int fileOp, char* file) {
     
     pid_t pid = fork();
     if(pid) { // parent
-        int fd[2], in = 0;
-        for(int i=0;i<numCommands;i++){
-            
-            pipe(fd);
-            
-            dup2 (in, STDIN_FILENO);
-            if(i < numCommands-1)
-                dup2 (fd[1], STDOUT_FILENO);
-            
-            if(i == numCommands-1)
-                dup2(1, STDOUT_FILENO);
-            
-            close(fd[1]);
-            in = fd[0];
-        }
-        
-        
         waitpid(pid, NULL, 0);
     } else { // child
         if(fileOp == 2){     //we are writing >
@@ -180,6 +163,10 @@ int main(){
     //printf("shell: ");
 
       
+      
+      int fd[2], in = 0;
+      
+      
     for(int i=0;i<numCommands;i++){
     //printf(commands[i].command);
         int fileOp = 0;
@@ -189,7 +176,8 @@ int main(){
                 fileOp = commands[i].fileOp;
             }
         
-        runcommand(commands[i].command, &commands[i].args, fileOp, file, numCommands, i);
+        runcommand(commands[i].command, &commands[i].args, fileOp, file);
+        
       
     }
 
