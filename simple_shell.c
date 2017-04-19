@@ -4,6 +4,8 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include  <signal.h>
+#include<semaphore.h>
+#include<fcntl.h>
 
 #define MAX_TOKEN_LENGTH 50
 #define MAX_TOKEN_COUNT 100
@@ -142,8 +144,17 @@ int main(){
 
     for(int i=0;i<numCommands;i++){
     //printf(commands[i].command);
-
-      runcommand(commands[i].command, &commands[i].args);
+        if(commands[i].fileOp == 2){
+            int fd = open(commands[i].file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+            dup2(fd, 1);
+            runcommand(commands[i].command, &commands[i].args);
+            close(fd);
+        if(commands[i].fileOp == 1){
+            
+        }else{
+            runcommand(commands[i].command, &commands[i].args);
+        }
+      
     }
 
     
