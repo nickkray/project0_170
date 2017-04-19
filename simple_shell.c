@@ -28,6 +28,9 @@ struct command{
   char* command;
   char* args[MAX_TOKEN_COUNT];
   int argC;
+    
+char* file;
+    int fileOp; // 1 if < and 2 if >
 };
 
 
@@ -83,20 +86,39 @@ int main(){
 	  commands[numCommands].args[i] = arguments[i];
 	commands[numCommands].argC = argument_count;
 	numCommands++;
+        commands[numCommands].fileOp = 0; // set default value for next one
 	
 	command = NULL;
 	argument_count = 0;
 	token = strtok(NULL, " ");
 	continue;
       }
+        
+        if(strcmp(token, "<") == 0){
+            commands[numCommands].fileOp = 1;
+            token = strtok(NULL, " ");
+            continue;
+        }
+        
+        if(strcmp(token, ">") == 0){
+            commands[numCommands].fileOp = 2;
+            token = strtok(NULL, " ");
+            continue;
+        }
+        
+        if(commands[numCommands].fileOp != 0){  //this was already set above, set filename
+            commands[numCommands].file = token;
+            token = strtok(NULL, " ");
+            continue;
+        }
       
       
-        if(!command){
+        if(!command)
             command = token;
-        }else{
+        
           arguments[argument_count] = token;
           argument_count++;
-        }
+        
       token = strtok(NULL, " ");
     }
       
@@ -119,8 +141,9 @@ int main(){
     //printf("shell: ");
 
     for(int i=0;i<numCommands;i++){
-        printf(commands[i].command);
-      //runcommand(commands[i].command, commands[i].args);
+    //printf(commands[i].command);
+
+      runcommand(commands[i].command, &commands[i].args);
     }
 
     
