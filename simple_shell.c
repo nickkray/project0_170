@@ -70,13 +70,13 @@ void runcommand(char* command, char** args, int fileOp, char* file, int i, int c
         waitpid(pid, NULL, 0);
     } else { // child
         if(fileOp == 2){     //we are writing >
-            int fd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
-            dup2(fd,fileno(stdout));
+            int redirectFd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+            dup2(redirectFd,fileno(stdout));
         }else
         if(fileOp == 1){           //we are reading <
-            int fd = open(file, O_RDONLY);
-            dup2(fd, fileno(stdin));
-        }else{
+            int redirectFd = open(file, O_RDONLY);
+            dup2(redirectFd, fileno(stdin));
+        }
         
         
         dup2 (*in, fileno(stdin));
@@ -85,9 +85,7 @@ void runcommand(char* command, char** args, int fileOp, char* file, int i, int c
         
         if(i == commandNum-1) //command n
             dup2(1, fileno(stdout));
-            
-        }
-        
+
         execvp(command, args);
         
     }
