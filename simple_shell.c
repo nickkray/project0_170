@@ -72,14 +72,18 @@ void runcommand(char* command, char** args, int fileOp, char* file, int i, int c
         if(fileOp == 2){     //we are writing >
             int redirectFd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
             dup2(redirectFd,fileno(stdout));
+            
+            dup2 (*in, fileno(stdin));
         }else
         if(fileOp == 1){           //we are reading <
             int redirectFd = open(file, O_RDONLY);
             dup2(redirectFd, fileno(stdin));
+        }else{
+            dup2 (*in, fileno(stdin));
         }
         
         
-        dup2 (*in, fileno(stdin));
+        
         if(i < commandNum-1) //commands 0...n-1
             dup2 (fd[1], fileno(stdout));
         
