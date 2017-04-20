@@ -79,10 +79,9 @@ void runcommand(char* command, char** args, int fileOp, char* readFile, char* wr
             dup2(redirectFd, fileno(stdin));
         }
         
-        if(fileOp == 2 || fileOp == 0){        //we are reading
+        if(fileOp == 2 || fileOp == 0){
             dup2 (*in, fileno(stdin));
         }
-        
         
         
         if(i < commandNum-1) //commands 0...n-1
@@ -143,9 +142,6 @@ int main(){
       }
         
         if(strcmp(token, "<") == 0){
-            if(commands[numCommands].fileOp == 2)
-                commands[numCommands].fileOp = 3;
-            else
                 commands[numCommands].fileOp = 1;
             token = strtok(NULL, " ");
             continue;
@@ -160,14 +156,14 @@ int main(){
             continue;
         }
         
-        if(commands[numCommands].fileOp == 1 || commands[numCommands].fileOp == 3){  //this was already set above, set filename
-            commands[numCommands].writeFile = token;
+        if(commands[numCommands].fileOp == 1){  //this was already set above, set filename
+            commands[numCommands].readFile = token;
             token = strtok(NULL, " ");
             continue;
         }
         
-        if(commands[numCommands].fileOp == 2){  //this was already set above, set filename
-            commands[numCommands].readFile = token;
+        if(commands[numCommands].fileOp == 3 || commands[numCommands].fileOp == 2){  //this was already set above, set filename
+            commands[numCommands].writeFile = token;
             token = strtok(NULL, " ");
             continue;
         }
