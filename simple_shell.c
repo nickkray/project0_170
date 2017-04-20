@@ -6,6 +6,7 @@
 #include  <signal.h>
 #include<semaphore.h>
 #include<fcntl.h>
+#include <errno.h>
 
 #define MAX_TOKEN_LENGTH 50
 #define MAX_TOKEN_COUNT 100
@@ -63,12 +64,20 @@ void  INThandler(int sig){
 void runcommand(char* command, char** args, int fileOp, char* readFile, char* writeFile, int i, int commandNum, int *fd, int *in) {
     
     pid_t pid = fork();
+    
+    if (pid == -1)
+        printf("Unable to create new process: %s\n", strerror(errno));
+    
     if(pid) { // parent
         
         close(fd[1]);
         *in = fd[0];
         
-        waitpid(pid, NULL, 0);
+        pid_t result = waitpid(pid, NULL, 0);
+        
+        if(result == -1)
+            printf("Child process failed: %s\n", strerror(errno));
+        
     } else { // child
         if(fileOp == 2 || fileOp == 3){     //we are writing > or both <>
             int redirectFd = open(writeFile, O_CREAT|O_TRUNC|O_WRONLY, 0644);
@@ -91,6 +100,8 @@ void runcommand(char* command, char** args, int fileOp, char* readFile, char* wr
             dup2(1, fileno(stdout));
 
         execvp(command, args);
+        
+        perror(command);
         
     }
 }
