@@ -31,7 +31,8 @@ struct command{
   char* args[MAX_TOKEN_COUNT];
   int argC;
     
-char* file;
+    char* readFile;
+    char* writeFile;
     int fileOp; // 1 if < and 2 if >
 };
 
@@ -59,7 +60,7 @@ void  INThandler(int sig){
 
 */
 
-void runcommand(char* command, char** args, int fileOp, char* file, int i, int commandNum, int *fd, int *in) {
+void runcommand(char* command, char** args, int fileOp, char* readFile, char* writeFile, int i, int commandNum, int *fd, int *in) {
     
     pid_t pid = fork();
     if(pid) { // parent
@@ -70,11 +71,11 @@ void runcommand(char* command, char** args, int fileOp, char* file, int i, int c
         waitpid(pid, NULL, 0);
     } else { // child
         if(fileOp == 2 || fileOp == 3){     //we are writing > or both <>
-            int redirectFd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
+            int redirectFd = open(writeFile, O_CREAT|O_TRUNC|O_WRONLY, 0644);
             dup2(redirectFd,fileno(stdout));
         }
         if(fileOp == 1 || fileOp == 3){           //we are reading < or both <>
-            int redirectFd = open(file, O_RDONLY);
+            int redirectFd = open(readFile, O_RDONLY);
             dup2(redirectFd, fileno(stdin));
         }
         
@@ -159,12 +160,18 @@ int main(){
             continue;
         }
         
-        if(commands[numCommands].fileOp != 0){  //this was already set above, set filename
-            commands[numCommands].file = token;
+        if(commands[numCommands].fileOp == 1 || commands[numCommands].fileOp == 3){  //this was already set above, set filename
+            commands[numCommands].writeFile = token;
             token = strtok(NULL, " ");
             continue;
         }
-      
+        
+        if(commands[numCommands].fileOp == 2){  //this was already set above, set filename
+            commands[numCommands].readFile = token;
+            token = strtok(NULL, " ");
+            continue;
+        }
+        
       
         if(!command)
             command = token;
@@ -205,13 +212,21 @@ int main(){
         
     //printf(commands[i].command);
         int fileOp = 0;
-        char* file;
+        char* readFile;
+        char* writeFile;
+        
             if(commands[i].fileOp!=0){
-                file = commands[i].file;
                 fileOp = commands[i].fileOp;
             }
-        
-        runcommand(commands[i].command, &commands[i].args, fileOp, file, i, numCommands, fd, &in);
+        if(fileOp == 1)
+            readFile = commands[i].readFile;
+        if(fileOp == 2)
+            writeFile = commands[i].writeFile;
+        if(fileOp == 3){
+            readFile = commands[i].readFile;
+            writeFile = commands[i].writeFile;
+        }
+        runcommand(commands[i].command, &commands[i].args, fileOp, readFile, writeFile, i, numCommands, fd, &in);
         
       
     }
