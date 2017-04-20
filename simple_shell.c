@@ -69,16 +69,16 @@ void runcommand(char* command, char** args, int fileOp, char* file, int i, int c
         
         waitpid(pid, NULL, 0);
     } else { // child
-        if(fileOp == 2){     //we are writing >
+        if(fileOp == 2 || fileOp == 3){     //we are writing > or both <>
             int redirectFd = open(file, O_CREAT|O_TRUNC|O_WRONLY, 0644);
             dup2(redirectFd,fileno(stdout));
-            
-            dup2 (*in, fileno(stdin));
-        }else
-        if(fileOp == 1){           //we are reading <
+        }
+        if(fileOp == 1 || fileOp == 3){           //we are reading < or both <>
             int redirectFd = open(file, O_RDONLY);
             dup2(redirectFd, fileno(stdin));
-        }else{
+        }
+        
+        if(fileOp == 2 || fileOp == 0){        //we are reading
             dup2 (*in, fileno(stdin));
         }
         
@@ -142,13 +142,19 @@ int main(){
       }
         
         if(strcmp(token, "<") == 0){
-            commands[numCommands].fileOp = 1;
+            if(commands[numCommands].fileOp == 2)
+                commands[numCommands].fileOp = 3;
+            else
+                commands[numCommands].fileOp = 1;
             token = strtok(NULL, " ");
             continue;
         }
         
         if(strcmp(token, ">") == 0){
-            commands[numCommands].fileOp = 2;
+            if(commands[numCommands].fileOp == 1)
+                commands[numCommands].fileOp = 3;
+            else
+                commands[numCommands].fileOp = 2;
             token = strtok(NULL, " ");
             continue;
         }
